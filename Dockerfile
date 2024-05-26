@@ -2,7 +2,8 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 
 # Set the working directory
-WORKDIR /app
+COPY . .
+RUN mvn clean package -Pprod -DskipTests
 
 # Copy the pom.xml and download dependencies
 COPY pom.xml ./
@@ -22,7 +23,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the JAR file from the build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /target/grocery-shop-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose port 80
 EXPOSE 80
