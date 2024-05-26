@@ -1,14 +1,31 @@
-# Use the official OpenJDK 17 base image
-FROM openjdk:17-jdk-alpine
+# Stage 1: Build the application
+FROM maven:3.8.4-openjdk-17-slim AS build
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the compiled JAR file into the container
-COPY target/grocery-shop-0.0.1-SNAPSHOT.jar app.jar
+# Copy the pom.xml and download dependencies
+COPY pom.xml ./
+COPY .mvn .mvn
+COPY mvnw ./
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline
 
-# Expose port 8080 to allow external access to the Spring Boot application
-EXPOSE 8080
+# Copy the source code and build the application
+COPY src ./src
+RUN ./mvnw clean package -Pprod -DskipTests
 
-# Command to run the Spring Boot application when the container starts
-CMD ["java", "-jar", "app.jar"]
+# Stage 2: Run the application
+FROM openjdk:17-jdk-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port 80
+EXPOSE 80
+
+# Run the JAR file
+ENTRYPOINT ["java", "-jar", "app.jar"]
