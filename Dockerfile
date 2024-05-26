@@ -1,13 +1,14 @@
-FROM openjdk:17
+# Use the official OpenJDK 17 base image
+FROM openjdk:17-jdk-alpine
 
-COPY . .
-RUN mvn clean package -Pprod -DskipTests
+# Set the working directory inside the container
+WORKDIR /app
 
+# Copy the compiled JAR file into the container
+COPY target/grocery-shop-0.0.1-SNAPSHOT.jar app.jar
 
-ARG JAR_FILE=target/*.jar
+# Expose port 8080 to allow external access to the Spring Boot application
+EXPOSE 8080
 
-ADD ${JAR_FILE} identity-service.jar
-
-ENTRYPOINT ["java", "-jar", "identity-service.jar"]
-
-EXPOSE 80
+# Command to run the Spring Boot application when the container starts
+CMD ["java", "-jar", "app.jar"]
