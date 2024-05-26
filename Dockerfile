@@ -1,14 +1,31 @@
-# Use a specific tag for Maven and JDK to ensure compatibility
-FROM maven:3.8.5-openjdk-17
+# Stage 1: Build the application
+FROM maven:3.8.4-openjdk-17-slim AS build
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy the pom.xml and download dependencies
+COPY pom.xml ./
+COPY .mvn .mvn
+COPY mvnw ./
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline
 
-# Run Maven clean and install to build the application
-RUN mvn clean install -DskipTests
+# Copy the source code and build the application
+COPY src ./src
+RUN ./mvnw clean package -Pprod -DskipTests
 
-# Command to run the application
-CMD ["mvn", "spring-boot:run"]
+# Stage 2: Run the application
+FROM openjdk:17-jdk-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port 80
+EXPOSE 80
+
+# Run the JAR file
+ENTRYPOINT ["java", "-jar", "app.jar"]
