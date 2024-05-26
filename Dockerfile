@@ -1,34 +1,9 @@
-# Stage 1: Build the application
-FROM maven:3.8.4-openjdk-17-slim AS build
+FROM openjdk:17
 
-# Set the working directory
-WORKDIR /app
+ARG JAR_FILE=target/*.jar
 
-# Copy the pom.xml and download dependencies
-COPY pom.xml ./
-COPY .mvn .mvn
-COPY mvnw ./
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline
+ADD ${JAR_FILE} identity-service.jar
 
-# Copy the source code and build the application
-COPY src ./src
-RUN ./mvnw clean package -Pprod -DskipTests
+ENTRYPOINT ["java", "-jar", "identity-service.jar"]
 
-# Stage 2: Run the application
-FROM openjdk:17-jdk-slim
-
-# Set the working directory
-WORKDIR /app
-
-# Copy the JAR file from the build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose port 80
 EXPOSE 80
-
-# Run the JAR file
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
-
