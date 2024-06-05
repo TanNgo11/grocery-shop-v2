@@ -7,13 +7,14 @@ import com.thanhtan.groceryshop.dto.response.OrderResponse;
 import com.thanhtan.groceryshop.dto.response.ProductSalesResponse;
 import com.thanhtan.groceryshop.entity.Order;
 import com.thanhtan.groceryshop.enums.OrderStatus;
+import jakarta.mail.MessagingException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface IOrderService {
-    OrderResponse createOrder(OrderRequest orderRequest);
+    OrderResponse createOrder(OrderRequest orderRequest) throws MessagingException;
 
     OrderResponse updateOrder(UpdateOrderRequest orderRequest);
 

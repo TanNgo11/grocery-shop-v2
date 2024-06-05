@@ -12,5 +12,6 @@ import lombok.experimental.FieldDefaults;
 public class CategoryRequest {
     String name;
     String description;
-    Status status;
+    @Builder.Default
+    Status status = Status.ACTIVE;
 }

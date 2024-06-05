@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,4 +22,10 @@ public class CouponRequest {
     @Future
     @NotNull
     Date expiryDate;
+
+    Long quantity;
+
+    String description;
+
+    List<Long> userIds;
 }

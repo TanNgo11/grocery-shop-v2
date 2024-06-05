@@ -17,6 +17,8 @@ public class UpdateUserRequest {
     String phoneNumber;
     String gender;
     String address;
+    String email;
+
     @DobConstraint(min = 18, message = "INVALID_DOB")
     LocalDate dateOfBirth;
 }

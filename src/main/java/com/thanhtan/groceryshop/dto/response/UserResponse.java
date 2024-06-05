@@ -1,6 +1,8 @@
 package com.thanhtan.groceryshop.dto.response;
 
 
+import com.thanhtan.groceryshop.enums.Gender;
+import com.thanhtan.groceryshop.enums.Status;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -21,10 +24,14 @@ public class UserResponse extends BaseDTO {
     String username;
     String firstName;
     String lastName;
-    LocalDate dateOfBirth;
-    String gender;
+    Date dateOfBirth;
+    Gender gender;
+    String phoneNumber;
+    String address;
     String email;
+    String avatar;
     Set<String> roles;
+    Status status;
 
 
 

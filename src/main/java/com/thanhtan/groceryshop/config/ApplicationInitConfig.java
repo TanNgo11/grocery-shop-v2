@@ -4,6 +4,7 @@ package com.thanhtan.groceryshop.config;
 import com.thanhtan.groceryshop.entity.User;
 import com.thanhtan.groceryshop.enums.Role;
 import com.thanhtan.groceryshop.repository.UserRepository;
+import com.thanhtan.groceryshop.util.EmailSender;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,8 @@ public class ApplicationInitConfig {
 
     PasswordEncoder passwordEncoder;
 
+    EmailSender emailSender;
+
     @Bean
     ApplicationRunner applicationRunner(UserRepository userRepository){
         return args -> {
@@ -39,6 +42,7 @@ public class ApplicationInitConfig {
                 userRepository.save(user);
                 log.warn("admin user has been created with default password: admin, please change it");
             }
+//            emailSender.sendTestEmail();
         };
     }
 }

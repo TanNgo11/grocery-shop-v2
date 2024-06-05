@@ -25,15 +25,11 @@ public class RatingController {
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ApiResponse<RatingResponse> createRating(@RequestBody @Valid RatingRequest ratingRequest) {
-        return ApiResponse.<RatingResponse>builder()
-                .result(ratingService.createRating(ratingRequest))
-                .build();
+        return ApiResponse.success(ratingService.createRating(ratingRequest));
     }
 
     @GetMapping("/average/{productId}")
     public ApiResponse<Double> getAverageRating(@PathVariable Long productId) {
-        return ApiResponse.<Double>builder()
-                .result(ratingService.getAverageRating(productId))
-                .build();
+        return ApiResponse.success(ratingService.getAverageRating(productId));
     }
 }

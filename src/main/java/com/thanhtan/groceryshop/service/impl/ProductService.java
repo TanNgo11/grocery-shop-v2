@@ -3,11 +3,13 @@ package com.thanhtan.groceryshop.service.impl;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.thanhtan.groceryshop.dto.request.ProductRequest;
+import com.thanhtan.groceryshop.dto.response.CategoryResponse;
 import com.thanhtan.groceryshop.dto.response.ProductResponse;
 import com.thanhtan.groceryshop.dto.response.ProductSalesResponse;
 import com.thanhtan.groceryshop.dto.response.SalesCategory;
 import com.thanhtan.groceryshop.entity.Category;
 import com.thanhtan.groceryshop.entity.Product;
+import com.thanhtan.groceryshop.entity.QCategory;
 import com.thanhtan.groceryshop.entity.QProduct;
 import com.thanhtan.groceryshop.enums.ProductStatus;
 import com.thanhtan.groceryshop.exception.ErrorCode;
@@ -50,7 +52,8 @@ public class ProductService implements IProductService {
     JPAQueryFactory queryFactory;
 
     RatingRepository ratingRepository;
-    private final OrderRepository orderRepository;
+
+    OrderRepository orderRepository;
 
 
     @Override
@@ -78,9 +81,19 @@ public class ProductService implements IProductService {
     @Override
     public List<ProductResponse> findSalesProduct() {
         QProduct qProduct = QProduct.product;
+        QCategory qCategory = QCategory.category;
         List<Product> products = queryFactory
-                .select(Projections.bean(Product.class, qProduct.id, qProduct.name, qProduct.price, qProduct.image, qProduct.slug, qProduct.salePrice))
+                .select(Projections.bean(Product.class,
+                        qProduct.id,
+                        qProduct.name,
+                        qProduct.price,
+                        qProduct.image,
+                        qProduct.slug,
+                        qProduct.salePrice,
+                        qProduct.productStatus,
+                        Projections.bean(Category.class, qProduct.category.id.as("id"), qProduct.category.name.as("name")).as("category")))
                 .from(qProduct)
+                .join(qProduct.category, qCategory)
                 .where(qProduct.salePrice.lt(qProduct.price))
                 .fetch();
 
@@ -195,9 +208,20 @@ public class ProductService implements IProductService {
     @Override
     public List<ProductResponse> findProductsByQueryString(String queryString) {
         QProduct qProduct = QProduct.product;
+        QCategory qCategory = QCategory.category;
         List<Product> products = queryFactory
-                .select(Projections.bean(Product.class, qProduct.name, qProduct.image, qProduct.slug))
+                .select(Projections.bean(Product.class,
+                        qProduct.id,
+                        qProduct.name,
+                        qProduct.price,
+                        qProduct.image,
+                        qProduct.slug,
+                        qProduct.salePrice,
+                        Projections.bean(Category.class,
+                                qProduct.category.id.as("id"),
+                                qProduct.category.name.as("name")).as("category")))
                 .from(qProduct)
+                .join(qProduct.category, qCategory)
                 .where(qProduct.name.containsIgnoreCase(queryString)
                         .or(qProduct.description.containsIgnoreCase(queryString))
                         .or(qProduct.category.name.containsIgnoreCase(queryString)))
@@ -233,7 +257,7 @@ public class ProductService implements IProductService {
 
     @Override
     public List<SalesCategory> findSalesCategory(Date startDate, Date endDate) {
-        return productRepository.findRevenueByCategoryInPeriod(startDate,endDate).stream()
+        return productRepository.findRevenueByCategoryInPeriod(startDate, endDate).stream()
                 .map(tuple -> new SalesCategory(
                         tuple.get(0, String.class),
                         tuple.get(1, Double.class)))

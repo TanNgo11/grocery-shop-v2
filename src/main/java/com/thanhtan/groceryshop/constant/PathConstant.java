@@ -12,6 +12,7 @@ public class PathConstant {
     public static final String AUTH = "/auth";
     public static final String CATEGORY = "/categories";
     public static final String COUPON = "/coupons";
+    public static final String NOTIFICATION = "/notifications";
 
 
     public static final String API_V1_PRODUCTS = API_V1 + PRODUCTS;
@@ -23,6 +24,7 @@ public class PathConstant {
     public static final String API_V1_AUTH = API_V1 + AUTH;
     public static final String API_V1_CATEGORY = API_V1 + CATEGORY;
     public static final String API_V1_COUPONS = API_V1 + COUPON;
+    public static final String API_V1_NOTIFICATION = API_V1 + NOTIFICATION;
 
 
     public static final String[] PUBLIC_AUTH_ENDPOINTS = {
@@ -30,6 +32,8 @@ public class PathConstant {
             API_V1_AUTH + "/introspect",
             API_V1_AUTH + "/logout",
             API_V1_AUTH + "/refresh",
+            API_V1_AUTH + "/outbound/authenticate",
+
     };
 
     public static final String[] PUBLIC_GET_ENDPOINTS = {
@@ -41,6 +45,7 @@ public class PathConstant {
             API_V1_CATEGORY + "/{categoryName}/products/count",
             API_V1_CATEGORY,
             API_V1_RATING,
+            "/ws/**",
             "/actuator/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",

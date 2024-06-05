@@ -1,6 +1,7 @@
 package com.thanhtan.groceryshop.controller;
 
 import com.thanhtan.groceryshop.dto.request.CategoryRequest;
+import com.thanhtan.groceryshop.dto.request.UpdateCategoryRequest;
 import com.thanhtan.groceryshop.dto.response.ApiResponse;
 import com.thanhtan.groceryshop.dto.response.CategoryResponse;
 import com.thanhtan.groceryshop.service.ICategoryService;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+import static com.thanhtan.groceryshop.constant.PathConstant.API_V1_CATEGORY;
+
+
 @RestController
-@RequestMapping("/api/v1/categories")
+@RequestMapping(API_V1_CATEGORY)
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -26,22 +29,36 @@ public class CategoryController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<CategoryResponse> createCategory(@RequestBody CategoryRequest category) {
-        return ApiResponse.<CategoryResponse>builder()
-                .result(categoryService.createCategory(category))
-                .build();
+        return ApiResponse.success(categoryService.createCategory(category));
     }
+
+    @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CategoryResponse> updateCategory(@RequestBody UpdateCategoryRequest category) {
+        return ApiResponse.success(categoryService.updateCategory(category));
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CategoryResponse> deleteCategory(@RequestParam Long[] ids) {
+        categoryService.deleteCategory(ids);
+        return ApiResponse.success(null);
+    }
+
     @GetMapping
     public ApiResponse<List<CategoryResponse>> getCategories() {
-        return ApiResponse.<List<CategoryResponse>>builder()
-                .result(categoryService.findAll())
-                .build();
+        return ApiResponse.success(categoryService.findAll());
+    }
+
+
+    @GetMapping("/{id}")
+    public ApiResponse<CategoryResponse> getCategoryById(@PathVariable Long id) {
+        return ApiResponse.success(categoryService.findById(id));
     }
 
 
     @GetMapping("/{categoryName}/products/count")
     public ApiResponse<Long> countProductByCategory(@PathVariable String categoryName) {
-        return ApiResponse.<Long>builder()
-                .result(categoryService.countProductByCategory(categoryName))
-                .build();
+        return ApiResponse.success(categoryService.countProductByCategory(categoryName));
     }
 }

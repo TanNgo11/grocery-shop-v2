@@ -15,4 +15,18 @@ public class ApiResponse<T> {
     private int code = 1000;
     String message;
     T result;
+
+    public static  <T> ApiResponse<T> success(T result) {
+        return ApiResponse.<T>builder()
+                .code(1000)
+                .message("SUCCESS")
+                .result(result)
+                .build();
+    }
+
+    public static <T> ApiResponse<T> empty() {
+        return success(null);
+    }
+
+
 }

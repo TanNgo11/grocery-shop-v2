@@ -22,5 +22,7 @@ public interface IAuthenticationService {
 
     AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
 
+    AuthenticationResponse OutboundAuthenticate(String code);
+
 
 }

@@ -8,6 +8,7 @@ import com.thanhtan.groceryshop.dto.response.MonthlySalesResponse;
 import com.thanhtan.groceryshop.dto.response.OrderResponse;
 import com.thanhtan.groceryshop.enums.OrderStatus;
 import com.thanhtan.groceryshop.service.IOrderService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -34,66 +35,52 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ApiResponse<OrderResponse> createOrder(@RequestBody @Valid OrderRequest orderRequest) {
-        return ApiResponse.<OrderResponse>builder()
-                .result(orderService.createOrder(orderRequest))
-                .build();
+    public ApiResponse<OrderResponse> createOrder(@RequestBody @Valid OrderRequest orderRequest) throws MessagingException {
+        return ApiResponse.success(orderService.createOrder(orderRequest));
     }
 
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Page<OrderResponse>> getAllOrder(@PageableDefault(size = 10) Pageable pageable, @RequestParam(required = false) String searchTerm) {
-        return ApiResponse.<Page<OrderResponse>>builder()
-                .result(orderService.getAllOrderWithoutOrderItems(pageable, searchTerm))
-                .build();
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
+    public ApiResponse<Page<OrderResponse>> getAllOrder(
+            @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(required = false) String searchTerm) {
+        return ApiResponse.success(orderService.getAllOrderWithoutOrderItems(pageable, searchTerm));
     }
 
     @GetMapping("/{orderId}")
     public ApiResponse<OrderResponse> getOrder(@PathVariable Long orderId) {
-        return ApiResponse.<OrderResponse>builder()
-                .result(orderService.getOrder(orderId))
-                .build();
+        return ApiResponse.success(orderService.getOrder(orderId));
     }
 
     @PutMapping()
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
     public ApiResponse<OrderResponse> updateOrder(@RequestBody @Valid UpdateOrderRequest updateOrderRequest) {
-        return ApiResponse.<OrderResponse>builder()
-                .result(orderService.updateOrder(updateOrderRequest))
-                .build();
+        return ApiResponse.success(orderService.updateOrder(updateOrderRequest));
     }
 
     @PutMapping("/{orderId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
     public ApiResponse<OrderResponse> updateOrderStatus(@PathVariable Long orderId, @RequestParam OrderStatus status) {
-        return ApiResponse.<OrderResponse>builder()
-                .result(orderService.updateOrderStatus(orderId, status))
-                .build();
+        return ApiResponse.success(orderService.updateOrderStatus(orderId, status));
     }
 
     @GetMapping("/monthly-sales")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
     public ApiResponse<List<MonthlySalesResponse>> getMonthlySales() {
-        return ApiResponse.<List<MonthlySalesResponse>>builder()
-                .result(orderService.getMonthlySales())
-                .build();
+        return ApiResponse.success(orderService.getMonthlySales());
     }
 
     @GetMapping("/daily-sales")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
     public ApiResponse<Long> findNumberOfOrderDaily() {
-        return ApiResponse.<Long>builder()
-                .result(orderService.findNumberOfOrderDaily())
-                .build();
+        return ApiResponse.success(orderService.findNumberOfOrderDaily());
     }
 
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse<List<OrderResponse>> findAllOrdersByUser() {
-        return ApiResponse.<List<OrderResponse>>builder()
-                .result(orderService.findAllOrdersByUser())
-                .build();
+        return ApiResponse.success(orderService.findAllOrdersByUser());
     }
 
 }

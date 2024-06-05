@@ -12,9 +12,15 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CouponResponse {
 
-    private String code;
+    Long id;
 
-    private double discount;
+    String code;
 
-    private LocalDateTime expiryDate;
+    double discount;
+
+    LocalDateTime expiryDate;
+
+    String description;
+
+    long quantity;
 }

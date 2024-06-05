@@ -17,13 +17,15 @@ public enum ErrorCode {
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
     INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND(1010, "Resource not found", HttpStatus.NOT_FOUND),
-    FILL_IN_THE_INPUT_FIELD (1011,"Fill in the input field", HttpStatus.BAD_REQUEST),
-    ALREADY_RATED(1011,"User has already rated this product." , HttpStatus.FORBIDDEN),
-    PRODUCT_QUANTITY_EXCEEDED(1012,"The requested quantity exceeds available stock." , HttpStatus.BAD_REQUEST),
+    FILL_IN_THE_INPUT_FIELD(1011, "Fill in the input field", HttpStatus.BAD_REQUEST),
+    ALREADY_RATED(1011, "User has already rated this product.", HttpStatus.FORBIDDEN),
+    PRODUCT_QUANTITY_EXCEEDED(1012, "The requested quantity exceeds available stock.", HttpStatus.BAD_REQUEST),
     RESOURCE_EXISTED(1013, "Resource existed", HttpStatus.BAD_REQUEST),
-    CLOUDINARY_DELETE_FAIL(1014,"Delete the old image fail on cloud" , HttpStatus.BAD_REQUEST),
+    CLOUDINARY_DELETE_FAIL(1014, "Delete the old image fail on cloud", HttpStatus.BAD_REQUEST),
     ROLE_NOT_EXISTED(1015, "Role not existed", HttpStatus.BAD_REQUEST),
-    COUPON_NOT_EXISTED(1016,"Coupon code not existed" , HttpStatus.BAD_REQUEST);
+    COUPON_NOT_EXISTED(1016, "Coupon code not existed", HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_EXISTED(1016, "Notification code not existed", HttpStatus.BAD_REQUEST);
+
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

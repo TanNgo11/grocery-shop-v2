@@ -1,5 +1,6 @@
 package com.thanhtan.groceryshop.dto.request;
 
+import com.thanhtan.groceryshop.enums.Status;
 import com.thanhtan.groceryshop.validator.DobConstraint;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -23,4 +24,6 @@ public class UserRequest {
     String gender;
     @DobConstraint(min = 18, message = "INVALID_DOB")
     LocalDate dateOfBirth;
+    @Builder.Default
+    Status status = Status.ACTIVE;
 }

@@ -1,6 +1,7 @@
 package com.thanhtan.groceryshop.entity;
 
 import com.thanhtan.groceryshop.enums.Gender;
+import com.thanhtan.groceryshop.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,7 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity(name = "users")
+@Entity
 public class User extends BaseEntity {
 
     String username;
@@ -29,10 +30,25 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     Gender gender;
     String address;
+    String email;
+    String avatar;
+    @Enumerated(EnumType.STRING)
+    Status status;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Notification> notifications;
 
     @ManyToMany
     Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     List<Order> orders = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_coupons",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "coupon_id")
+    )
+    private Set<Coupon> coupons;
 }

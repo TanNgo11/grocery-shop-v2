@@ -26,22 +26,17 @@ public class PermissionController {
 
     @GetMapping
     ApiResponse<List<PermissionResponse>> getPermissions() {
-        return ApiResponse.<List<PermissionResponse>>builder()
-                .result(permissionService.getAllPermission())
-                .build();
+        return ApiResponse.success(permissionService.getAllPermission());
     }
 
     @PostMapping
-    ApiResponse<PermissionResponse> createPermission(@RequestBody PermissionRequest request
-    ) {
-        return ApiResponse.<PermissionResponse>builder()
-                .result(permissionService.createPermission(request))
-                .build();
+    ApiResponse<PermissionResponse> createPermission(@RequestBody PermissionRequest request) {
+        return ApiResponse.success(permissionService.createPermission(request));
     }
 
     @DeleteMapping("/{permissionId}")
     ApiResponse<Void> deletePermission(@PathVariable String permissionId) {
         permissionService.deletePermission(permissionId);
-        return ApiResponse.<Void>builder().build();
+        return ApiResponse.empty();
     }
 }

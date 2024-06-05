@@ -46,11 +46,11 @@ public class CloudinaryService implements ICloudinaryService {
     public static String getPublicIdFromUrl(String url) {
 
         if (url == null || !url.contains("/image/upload/")) {
-            throw new IllegalArgumentException("Invalid Cloudinary URL");
+            return "";
         }
         String[] parts = url.split("/image/upload/");
         if (parts.length < 2) {
-            throw new IllegalArgumentException("Invalid Cloudinary URL structure");
+            return "";
         }
 
         String versionAndPublicId = parts[1];

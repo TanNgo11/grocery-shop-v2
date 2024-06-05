@@ -1,18 +1,30 @@
 package com.thanhtan.groceryshop.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.thanhtan.groceryshop.dto.request.UpdateUserRequest;
 import com.thanhtan.groceryshop.dto.request.UserRequest;
 import com.thanhtan.groceryshop.dto.response.ApiResponse;
 import com.thanhtan.groceryshop.dto.response.UserResponse;
 import com.thanhtan.groceryshop.service.IUserService;
+import com.thanhtan.groceryshop.util.ValidationUtil;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.thanhtan.groceryshop.constant.PathConstant.API_V1_USERS;
 
@@ -28,29 +40,62 @@ public class UserController {
 
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserRequest request) {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.createUser(request))
-                .build();
+        return ApiResponse.success(userService.createUser(request));
 
     }
 
     @GetMapping("/myInfo")
-    @PreAuthorize("hasRole('USER')||hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')||hasRole('ADMIN')||hasRole('STAFF')")
     ApiResponse<UserResponse> getMyInfo() {
-
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getMyInfo())
-                .build();
+        return ApiResponse.success(userService.getMyInfo());
     }
 
 
-    @PutMapping
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('USER')||hasRole('ADMIN')")
-    ApiResponse<UserResponse> updateUserProfile(@RequestBody @Valid UpdateUserRequest request) {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.updateUserProfile(request))
-                .build();
+    public ApiResponse<UserResponse> updateUserProfile(
+            @RequestPart("user") String userStr,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+        UpdateUserRequest updateUserRequest = ValidationUtil.validateUserStr(userStr);
+
+        return ApiResponse.success(userService.updateUserProfile(updateUserRequest, file));
     }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
+    ApiResponse<List<UserResponse>> getAllUsers() {
+        return ApiResponse.success(userService.getUsers());
+    }
+
+    @GetMapping("/customers")
+    @PreAuthorize("hasRole('ADMIN')||hasRole('STAFF')")
+    ApiResponse<List<UserResponse>> getAllCustomer() {
+        return ApiResponse.success(userService.getAllCustomer());
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<List<UserResponse>> getAllAdmin() {
+        return ApiResponse.success(userService.getAllAdmin());
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<UserResponse> getUserById(@PathVariable Long userId) {
+        return ApiResponse.success(userService.getUserById(userId));
+    }
+
+    @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserResponse> updateUserProfileById(
+            @PathVariable Long userId,
+            @RequestPart("user") String userStr,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+
+        UpdateUserRequest updateUserRequest = ValidationUtil.validateUserStr(userStr);
+        return ApiResponse.success(userService.updateUserProfileById(updateUserRequest, file, userId));
+    }
+
 
 
 

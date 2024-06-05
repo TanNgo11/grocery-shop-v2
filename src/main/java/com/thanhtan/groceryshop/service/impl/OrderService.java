@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.QBean;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.thanhtan.groceryshop.dto.request.NotificationRequest;
 import com.thanhtan.groceryshop.dto.request.OrderItemRequest;
 import com.thanhtan.groceryshop.dto.request.OrderRequest;
 import com.thanhtan.groceryshop.dto.request.UpdateOrderRequest;
@@ -23,7 +24,9 @@ import com.thanhtan.groceryshop.repository.CouponRepository;
 import com.thanhtan.groceryshop.repository.OrderRepository;
 import com.thanhtan.groceryshop.repository.ProductRepository;
 import com.thanhtan.groceryshop.repository.UserRepository;
+import com.thanhtan.groceryshop.service.IEmailService;
 import com.thanhtan.groceryshop.service.IOrderService;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +36,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +62,12 @@ public class OrderService implements IOrderService {
     UserRepository userRepository;
 
     CouponRepository couponRepository;
+
+    NotificationService notificationService;
+
+    SimpMessagingTemplate messagingTemplate;
+
+    IEmailService emailService;
 
 
     @Override
@@ -140,7 +148,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(OrderRequest orderRequest) {
+    public OrderResponse createOrder(OrderRequest orderRequest) throws MessagingException {
         Order savedOrder = orderMapper.toOrder(orderRequest);
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -161,8 +169,24 @@ public class OrderService implements IOrderService {
         savedOrder.setUser(user);
 
         couponRepository.deleteByCode(orderRequest.getCouponCode());
+
+
+        NotificationRequest notificationRequest =
+                NotificationRequest.builder()
+                .title("New Order")
+                .content(user.getFirstName() + user.getLastName() + "has placed a new order.")
+                .build();
         savedOrder = orderRepository.save(savedOrder);
-        return orderMapper.toOrderResponse(savedOrder);
+
+        notificationService.sendNotificationToAdmin(notificationRequest);
+        Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put("order", savedOrder);
+        templateModel.put("orderItems", savedOrder.getOrderItems().stream().toList());
+        emailService.sendTemplateEmail(user.getEmail(), "Order Confirmation", templateModel);
+
+        OrderResponse orderResponse = orderMapper.toOrderResponse(savedOrder);
+        messagingTemplate.convertAndSend("/topic/order", orderResponse);
+        return orderResponse;
     }
 
     @Override

@@ -23,5 +23,5 @@ public class BaseDTO {
     private Date modifiedDate;
     private String createdBy;
     private String modifiedBy;
-    private long[] ids;
+
 }

@@ -5,20 +5,21 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.thanhtan.groceryshop.dto.request.AuthenticationRequest;
-import com.thanhtan.groceryshop.dto.request.IntrospectRequest;
-import com.thanhtan.groceryshop.dto.request.LogoutRequest;
-import com.thanhtan.groceryshop.dto.request.RefreshRequest;
+import com.thanhtan.groceryshop.dto.request.*;
 import com.thanhtan.groceryshop.dto.response.AuthenticationResponse;
 import com.thanhtan.groceryshop.dto.response.IntrospectResponse;
 import com.thanhtan.groceryshop.entity.InvalidatedToken;
 import com.thanhtan.groceryshop.entity.RefreshToken;
+import com.thanhtan.groceryshop.entity.Role;
 import com.thanhtan.groceryshop.entity.User;
 import com.thanhtan.groceryshop.exception.AppException;
 import com.thanhtan.groceryshop.exception.ErrorCode;
 import com.thanhtan.groceryshop.repository.InvalidatedTokenRepository;
+import com.thanhtan.groceryshop.repository.RoleRepository;
+import com.thanhtan.groceryshop.repository.httpclient.OutboundIdentityClient;
 import com.thanhtan.groceryshop.repository.RefreshTokenRepository;
 import com.thanhtan.groceryshop.repository.UserRepository;
+import com.thanhtan.groceryshop.repository.httpclient.OutboundUserClient;
 import com.thanhtan.groceryshop.service.IAuthenticationService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -35,21 +36,25 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService implements IAuthenticationService {
 
-    final UserRepository userRepository;
+    UserRepository userRepository;
 
-    final RefreshTokenRepository refreshTokenRepository;
+    RefreshTokenRepository refreshTokenRepository;
 
-    final InvalidatedTokenRepository invalidatedTokenRepository;
+    InvalidatedTokenRepository invalidatedTokenRepository;
+
+    OutboundIdentityClient outboundIdentityClient;
+
+    OutboundUserClient outboundUserClient;
+
+    RoleRepository roleRepository;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -62,6 +67,22 @@ public class AuthenticationService implements IAuthenticationService {
     @NonFinal
     @Value("${jwt.valid-refresh-duration}")
     protected long VALID_REFRESH_DURATION;
+
+
+    @NonFinal
+    @Value("${outbound.identity.client-id}")
+    protected String CLIENT_ID;
+
+    @NonFinal
+    @Value("${outbound.identity.client-secret}")
+    protected String CLIENT_SECRET;
+
+    @NonFinal
+    @Value("${outbound.identity.redirect-uri}")
+    protected String REDIRECT_URI;
+
+    @NonFinal
+    protected final String GRANT_TYPE = "authorization_code";
 
 
     @Override
@@ -223,7 +244,7 @@ public class AuthenticationService implements IAuthenticationService {
         var user = userRepository.findByUsername(username).orElseThrow(
                 () -> new AppException(ErrorCode.UNAUTHENTICATED)
         );
-        if(!refreshTokenRepository.existsByToken(request.getRefreshToken()))
+        if (!refreshTokenRepository.existsByToken(request.getRefreshToken()))
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         refreshTokenRepository.deleteByToken(request.getRefreshToken());
@@ -247,18 +268,56 @@ public class AuthenticationService implements IAuthenticationService {
                 .build();
     }
 
+    @Override
+    public AuthenticationResponse OutboundAuthenticate(String code) {
+        var response = outboundIdentityClient.exchangeToken(ExchangeTokenRequest.builder()
+                .code(code)
+                .clientId(CLIENT_ID)
+                .clientSecret(CLIENT_SECRET)
+                .redirectUri(REDIRECT_URI)
+                .grantType(GRANT_TYPE)
+                .build());
+
+        log.info("TOKEN RESPONSE {}", response);
+
+        var userInfo = outboundUserClient.getUserInfor("json", response.getAccessToken());
+
+        log.info("USER INFO {}", userInfo);
+
+
+        Set<com.thanhtan.groceryshop.entity.Role> roles = new HashSet<>();
+        com.thanhtan.groceryshop.entity.Role userRole = roleRepository.findByName(com.thanhtan.groceryshop.enums.Role.USER.name()).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        roles.add(userRole);
+
+        var user = userRepository.findByUsername(userInfo.getEmail())
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .username(userInfo.getEmail())
+                            .firstName(userInfo.getGivenName())
+                            .lastName(userInfo.getFamilyName())
+                            .password(UUID.randomUUID().toString())
+                            .roles(roles)
+                            .build();
+                    return userRepository.save(newUser);
+                });
+
+
+        return AuthenticationResponse.builder()
+                .accessToken(response.getAccessToken())
+                .refreshToken(response.getRefreshToken())
+                .build();
+    }
+
 
     private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
         String tokenId = signedJWT.getJWTClaimsSet().getJWTID();
 
-        System.out.println("token id " + tokenId);
 
         Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);
-
 
 
         if (!(verified && expiryTime.after(new Date())))

@@ -14,9 +14,9 @@ public interface ICouponService {
 
     CouponResponse getCouponById(Long id);
 
-    CouponResponse createCoupon(CouponRequest couponRequest);
+    CouponResponse createGlobalCoupon(CouponRequest couponRequest);
 
-    void deleteCoupon(Long id);
+    void deleteCouponByIds(Long [] ids);
 
     CouponResponse getCouponByCode(String code);
 }

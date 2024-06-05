@@ -3,6 +3,7 @@ package com.thanhtan.groceryshop.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -22,5 +23,7 @@ public class RefreshToken extends BaseEntity  {
     String token;
     String username;
     Date expiryTime;
+    @Version
+    private Integer version;
 
 }

@@ -9,14 +9,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import java.lang.annotation.Target;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+
     User toUser(UserRequest request);
 
-    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "roles", source = "roles", ignore = true)
     UserResponse toUserResponse(User user);
 
 
@@ -25,4 +26,7 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "orders", ignore = true)
     void updateUser(@MappingTarget User user, UpdateUserRequest request);
+
+
+    List<UserResponse> toUserResponseList(List<User> allUsers);
 }

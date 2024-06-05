@@ -1,5 +1,6 @@
 package com.thanhtan.groceryshop.repository;
 
+import com.thanhtan.groceryshop.entity.Category;
 import com.thanhtan.groceryshop.entity.Order;
 import com.thanhtan.groceryshop.entity.Product;
 import com.thanhtan.groceryshop.enums.ProductStatus;
@@ -31,6 +32,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> , Queryd
     void updateStatusById(@Param("id") Long id, @Param("status") ProductStatus status);
 
 
-
-
+    List<Product> findByCategory(Category category);
 }
